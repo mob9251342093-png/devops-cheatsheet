@@ -14,9 +14,10 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 16px;
     }
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       width: 100%;
       padding: 20px;
       background: #161b22;
@@ -97,18 +98,41 @@
       margin-bottom: 16px;
       font-size: 22px;
     }
-    .tab-content pre {
+
+    .tab-content h3 {
+      color: #f0f6fc;
+      margin: 24px 0 12px 0;
+      font-size: 18px;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 6px;
+    }
+
+    .desc {
+      color: #8b949e;
+      margin: 8px 0 12px 0;
+      font-size: 15px;
+    }
+
+    .cmd-block {
       background: #0d1117;
-      padding: 14px 18px;
       border-radius: 8px;
       border: 1px solid #30363d;
-      overflow-x: auto;
+      padding: 12px 50px 12px 16px;
+      margin: 4px 0 8px 0;
+      position: relative;
       font-family: 'Courier New', monospace;
       font-size: 14px;
       color: #e6edf3;
-      position: relative;
-      margin-top: 6px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
+
+    .cmd-block .comment {
+      color: #8b949e;
+      font-size: 13px;
+    }
+
     .copy-btn {
       position: absolute;
       top: 8px;
@@ -122,8 +146,47 @@
       font-size: 12px;
     }
     .copy-btn:hover { background: #30363d; color: #e6edf3; }
-    .desc { color: #8b949e; margin: 8px 0 16px 0; font-size: 15px; }
-    .code-block { position: relative; }
+
+    .note {
+      background: #1f242f;
+      border-left: 3px solid #238636;
+      padding: 10px 16px;
+      margin: 12px 0;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 14px;
+    }
+    .note code {
+      background: #0d1117;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #30363d;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #1f242f;
+      color: #f0f6fc;
+    }
+    td {
+      color: #e6edf3;
+    }
+    td code {
+      background: #0d1117;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -155,78 +218,132 @@
       id: 'docker',
       label: '🐳 Docker',
       content: `
-        <h2>Шпаргалка по Docker</h2>
-        <div class="desc">Основные команды для работы с контейнерами</div>
-        <div class="code-block"><pre>docker build -t my-image .<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker run -d --name my-app nginx<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker ps -a<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker stop my-app && docker rm my-app<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker exec -it my-app bash<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker logs my-app<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div style="margin-top:12px;color:#8b949e;">— volumes: <code>-v /host:/container</code></div>
+        <h2>ШПАРГАЛКА №1: Docker + Docker Compose</h2>
+
+        <h3>Основные команды Docker</h3>
+
+        <div class="cmd-block">docker --version                    <span class="comment"># версия</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker ps                           <span class="comment"># запущенные контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker ps -a                       <span class="comment"># все контейнеры (включая остановленные)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker images                      <span class="comment"># образы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker logs &lt;container_name&gt;  <span class="comment"># логи</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker exec -it &lt;container&gt; bash  <span class="comment"># зайти внутрь контейнера</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker stop &lt;container&gt;       <span class="comment"># остановить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker rm &lt;container&gt;         <span class="comment"># удалить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker rmi &lt;image&gt;            <span class="comment"># удалить образ</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Docker Compose (самое важное)</h3>
+
+        <div class="cmd-block">docker compose up -d --build      <span class="comment"># собрать и запустить в фоне</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose down               <span class="comment"># остановить и удалить контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose ps                 <span class="comment"># статус сервисов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose logs web           <span class="comment"># логи сервиса web</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose logs db --tail=50  <span class="comment"># последние 50 строк логов db</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose restart web        <span class="comment"># перезапустить один сервис</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Полезные флаги</h3>
+        <ul style="color:#e6edf3; margin:8px 0 16px 20px;">
+          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--build</code> — пересобрать образы</li>
+          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-d</code> — в фоне (detached)</li>
+          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--force-recreate</code> — пересоздать контейнеры</li>
+        </ul>
+
+        <h3>Когда использовать docker и когда docker compose</h3>
+        <table>
+          <tr><th>Задача</th><th>Рекомендуемая команда</th><th>Какая команда лучше</th><th>Почему</th></tr>
+          <tr><td>Запустить весь проект (все сервисы)</td><td><code>docker compose up -d</code></td><td>docker compose</td><td>Запускает все контейнеры по docker-compose.yml</td></tr>
+          <tr><td>Остановить весь проект</td><td><code>docker compose down</code></td><td>docker compose</td><td>Останавливает и удаляет всё, что описано в файле</td></tr>
+          <tr><td>Посмотреть статус всех сервисов</td><td><code>docker compose ps</code></td><td>docker compose</td><td>Показывает красиво по сервисам</td></tr>
+          <tr><td>Посмотреть логи конкретного сервиса</td><td><code>docker compose logs web</code></td><td>docker compose</td><td>Удобнее</td></tr>
+          <tr><td>Зайти внутрь контейнера</td><td><code>docker exec -it name bash</code></td><td>docker</td><td>exec — базовая команда Docker</td></tr>
+          <tr><td>Посмотреть все запущенные контейнеры</td><td><code>docker ps</code></td><td>docker</td><td>Более полная информация</td></tr>
+          <tr><td>Посмотреть логи одного контейнера</td><td><code>docker logs name</code></td><td>Оба варианта</td><td>Можно оба</td></tr>
+          <tr><td>Пересобрать образы</td><td><code>docker compose up -d --build</code></td><td>docker compose</td><td>Удобно</td></tr>
+          <tr><td>Удалить все остановленные контейнеры</td><td><code>docker rm -f $(docker ps -aq)</code></td><td>docker</td><td>Когда compose не нужен</td></tr>
+          <tr><td>Зайти в контейнер PostgreSQL</td><td><code>docker compose exec db psql -U user</code></td><td>docker compose</td><td>exec внутри compose</td></tr>
+        </table>
+
+        <div class="note">💡 <strong>Главное правило:</strong> если у тебя есть <code>docker-compose.yml</code> — используй <code>docker compose</code>. Если запускаешь один контейнер — используй <code>docker</code>.</div>
       `
     },
     {
       id: 'linux',
       label: '🐧 Linux',
       content: `
-        <h2>Шпаргалка по Linux</h2>
-        <div class="desc">Основные команды для работы в терминале</div>
-        <div class="code-block"><pre>ls -la<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>cd /home/devops<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>cat file.txt<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>grep "error" app.log<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>chmod +x script.sh && ./script.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>df -h<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <h2>ШПАРГАЛКА №2: Linux (Bash)</h2>
+        <div class="cmd-block">ls -la                     <span class="comment"># показать все файлы (включая скрытые)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cd /home/devops            <span class="comment"># перейти в папку</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cat file.txt               <span class="comment"># посмотреть содержимое файла</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">grep "error" app.log       <span class="comment"># найти строки с текстом</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">chmod +x script.sh && ./script.sh  <span class="comment"># сделать скрипт исполняемым и запустить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">df -h                     <span class="comment"># свободное место на диске</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">sudo apt update && sudo apt upgrade -y  <span class="comment"># обновить систему (Debian/Ubuntu)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">systemctl status docker   <span class="comment"># статус сервиса</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">journalctl -u docker -f   <span class="comment"># логи сервиса в реальном времени</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">tail -f /var/log/app.log  <span class="comment"># следить за логом</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
       `
     },
     {
       id: 'git',
       label: '📦 Git',
       content: `
-        <h2>Шпаргалка по Git</h2>
-        <div class="desc">Основы контроля версий</div>
-        <div class="code-block"><pre>git init<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>git add . && git commit -m "сообщение"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>git push -u origin main<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>git pull<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>git branch -a<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>git checkout -b new-feature<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <h2>ШПАРГАЛКА №3: Git</h2>
+        <div class="cmd-block">git init                         <span class="comment"># создать репозиторий</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git add . && git commit -m "msg" <span class="comment"># добавить все и сохранить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git push -u origin main         <span class="comment"># отправить на GitHub</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git pull                        <span class="comment"># забрать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git checkout -b new-feature    <span class="comment"># создать ветку и переключиться</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git branch -a                  <span class="comment"># список веток (локальные + удалённые)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git merge feature              <span class="comment"># слить ветку feature в текущую</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git status                     <span class="comment"># статус изменений</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git log --oneline --graph      <span class="comment"># история коммитов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git stash                      <span class="comment"># спрятать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
       `
     },
     {
       id: 'postgres',
       label: '🐘 PostgreSQL',
       content: `
-        <h2>Шпаргалка по PostgreSQL</h2>
-        <div class="desc">Запуск, подключение, бэкап</div>
-        <div class="code-block"><pre>docker run -d --name postgres-lab -e POSTGRES_USER=devops -e POSTGRES_PASSWORD=devops123 -e POSTGRES_DB=learning -p 5432:5432 -v postgres_data:/var/lib/postgresql/data postgres:15<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker exec -it postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>\\l<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>\\dt<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>SELECT * FROM employees;<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>docker exec postgres-lab pg_dump -U devops learning > backup.sql<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <h2>ШПАРГАЛКА №4: PostgreSQL</h2>
+        <div class="cmd-block">docker run -d --name postgres-lab -e POSTGRES_USER=devops -e POSTGRES_PASSWORD=devops123 -e POSTGRES_DB=learning -p 5432:5432 -v postgres_data:/var/lib/postgresql/data postgres:15<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker exec -it postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">\\l   <span class="comment"># список баз данных</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">\\dt  <span class="comment"># список таблиц</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">\\d employees  <span class="comment"># структура таблицы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">SELECT * FROM employees;<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">\\q   <span class="comment"># выход</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker exec postgres-lab pg_dump -U devops learning > backup.sql<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cat backup.sql | docker exec -i postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
       `
     },
     {
       id: 'cicd',
       label: '🔄 CI/CD',
       content: `
-        <h2>Шпаргалка по CI/CD (GitHub Actions)</h2>
-        <div class="desc">Автоматическая проверка и сборка</div>
-        <div class="code-block"><pre>name: Check Bash Scripts\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n    - uses: actions/checkout@v4\n    - run: bash -n *.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <h2>ШПАРГАЛКА №5: CI/CD (GitHub Actions)</h2>
+        <div class="desc">Базовый workflow для проверки bash-скриптов</div>
+        <div class="cmd-block">name: Check Bash Scripts
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: bash -n *.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="note">💡 <strong>Запускается при каждом push</strong> — проверяет синтаксис всех .sh файлов</div>
       `
     },
     {
       id: 'ssh',
       label: '🔒 SSH',
       content: `
-        <h2>Шпаргалка по SSH</h2>
-        <div class="desc">Подключение к серверам и ключи</div>
-        <div class="code-block"><pre>ssh-keygen -t ed25519 -C "email@example.com"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>cat ~/.ssh/id_ed25519.pub<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>ssh user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
-        <div class="code-block"><pre>scp file.txt user@192.168.1.1:/remote/<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <h2>ШПАРГАЛКА №6: SSH</h2>
+        <div class="cmd-block">ssh-keygen -t ed25519 -C "email@example.com"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cat ~/.ssh/id_ed25519.pub<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ssh user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">scp file.txt user@192.168.1.1:/remote/<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ssh-copy-id user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
       `
     }
   ];
@@ -266,8 +383,8 @@
   }
 
   function copyCmd(btn) {
-    const pre = btn.parentElement;
-    const text = pre.textContent.replace('Копировать', '').trim();
+    const block = btn.parentElement;
+    const text = block.textContent.replace('Копировать', '').trim();
     navigator.clipboard.writeText(text);
     btn.textContent = '✅';
     setTimeout(() => btn.textContent = 'Копировать', 1200);
