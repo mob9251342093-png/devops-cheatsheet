@@ -178,6 +178,25 @@
       border-radius: 4px;
       font-size: 13px;
     }
+    .loading {
+      text-align: center;
+      color: #8b949e;
+      padding: 40px 0;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-header .edit-link {
+      color: #58a6ff;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .section-header .edit-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -189,24 +208,220 @@
     <p style="color: #8b949e; margin-bottom: 24px;">Введите логин и пароль</p>
     <input type="text" id="loginUser" placeholder="Логин" value="devops">
     <input type="password" id="loginPass" placeholder="Пароль" value="123">
-    <button onclick="login()">Войти</button>
+    <button onclick="doLogin()">Войти</button>
     <div id="loginError" class="error hidden">Неверный логин или пароль</div>
   </div>
 
   <!-- MAIN -->
   <div id="main" class="hidden">
     <div class="tabs" id="tabHeaders"></div>
-    <div id="tabContents"></div>
+    <div id="tabContents">
+      <div class="loading">Загрузка шпаргалок...</div>
+    </div>
   </div>
 </div>
 
 <script>
-  const LOGIN = 'devops';
-  const PASSWORD = '123';
+  // ========================================================
+  // 1. Логин и пароль (можно поменять здесь)
+  // ========================================================
+  var LOGIN = 'devops';
+  var PASSWORD = '123';
 
-  function login() {
-    const user = document.getElementById('loginUser').value;
-    const pass = document.getElementById('loginPass').value;
+  // ========================================================
+  // 2. Список секций (шпаргалок) и их файлы на GitHub
+  // ========================================================
+  // ВАЖНО: замени "mob9251342093-png" на свой GitHub логин,
+  // если он отличается!
+  var GITHUB_USER = 'mob9251342093-png';
+  var REPO_NAME = 'devops-cheatsheet';
+  var BRANCH = 'main';
+
+  // Здесь перечислены все шпаргалки. 
+  // Чтобы добавить новую — допиши объект в конец списка:
+  // { id: 'ansible', label: '🔧 Ansible', file: 'ansible.md' },
+  var SECTIONS = [
+    { id: 'docker', label: '🐳 Docker', file: 'docker.md' },
+    { id: 'linux', label: '🐧 Linux', file: 'linux.md' },
+    { id: 'git', label: '📦 Git', file: 'git.md' },
+    { id: 'postgres', label: '🐘 PostgreSQL', file: 'postgres.md' },
+    { id: 'cicd', label: '🔄 CI/CD', file: 'cicd.md' },
+    { id: 'ssh', label: '🔒 SSH', file: 'ssh.md' }
+  ];
+
+  // ========================================================
+  // 3. Функция загрузки содержимого с GitHub
+  // ========================================================
+  function loadSectionContent(section, callback) {
+    var url = 'https://raw.githubusercontent.com/' + GITHUB_USER + '/' + REPO_NAME + '/' + BRANCH + '/sections/' + section.file;
+    fetch(url)
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить ' + section.file + ' (HTTP ' + response.status + ')');
+        }
+        return response.text();
+      })
+      .then(function(text) {
+        // Преобразуем Markdown в HTML
+        var html = convertMarkdownToHtml(text);
+        callback(null, html);
+      })
+      .catch(function(error) {
+        callback(error, null);
+      });
+  }
+
+  // ========================================================
+  // 4. Конвертер Markdown → HTML (простой, для наших шпаргалок)
+  // ========================================================
+  function convertMarkdownToHtml(md) {
+    // Заголовки
+    var html = md
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      // Блоки кода (```bash ... ```)
+      .replace(/```bash([\s\S]*?)```/g, function(match, code) {
+        var lines = code.trim().split('\n');
+        var htmlLines = lines.map(function(line) {
+          // Если строка начинается с команды, обрабатываем
+          var trimmed = line.trim();
+          if (trimmed.startsWith('#') || trimmed.startsWith('//')) {
+            return '<div class="cmd-block"><span class="comment">' + trimmed + '</span></div>';
+          }
+          // Проверяем, есть ли комментарий через #
+          if (trimmed.includes(' # ')) {
+            var parts = trimmed.split(' # ');
+            var cmd = parts[0];
+            var comment = parts.slice(1).join(' # ');
+            return '<div class="cmd-block">' + cmd + ' <span class="comment"># ' + comment + '</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>';
+          }
+          return '<div class="cmd-block">' + trimmed + '<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>';
+        });
+        return htmlLines.join('');
+      })
+      // Таблицы (упрощённо)
+      .replace(/\|(.+)\|/g, function(match, row) {
+        var cells = row.split('|').map(function(c) { return c.trim(); });
+        var isHeader = false;
+        // Проверяем, не является ли строка разделителем (|---|---|)
+        if (cells.every(function(c) { return /^[-:]+$/.test(c); })) {
+          return '';
+        }
+        // Если все ячейки содержат заголовки (не пустые и не разделители)
+        if (cells.length > 1 && !cells.some(function(c) { return /^[-:]+$/.test(c); })) {
+          isHeader = true;
+        }
+        var tag = isHeader ? 'th' : 'td';
+        var tr = '<tr>' + cells.map(function(c) { return '<' + tag + '>' + c + '</' + tag + '>'; }).join('') + '</tr>';
+        return tr;
+      })
+      // Обычный текст
+      .replace(/^\*\*(.*)\*\*$/gim, '<strong>$1</strong>')
+      .replace(/^\*(.*)\*$/gim, '<em>$1</em>')
+      // Ссылки [текст](url)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      // Списки
+      .replace(/^- (.*)$/gim, '<li>$1</li>')
+      // Заменяем переносы строк на <br> для обычного текста
+      .replace(/\n/g, '<br>');
+
+    // Оборачиваем списки в <ul>
+    html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+    // Убираем дублирование ul
+    html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+    return html;
+  }
+
+  // ========================================================
+  // 5. Рендеринг сайта
+  // ========================================================
+  function renderTabs() {
+    var container = document.getElementById('tabHeaders');
+    container.innerHTML = '';
+    for (var i = 0; i < SECTIONS.length; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+      btn.setAttribute('data-tab', SECTIONS[i].id);
+      btn.textContent = SECTIONS[i].label;
+      btn.onclick = (function(id) {
+        return function() { switchTab(id); };
+      })(SECTIONS[i].id);
+      container.appendChild(btn);
+    }
+  }
+
+  function renderContent(activeId) {
+    if (!activeId) activeId = SECTIONS[0].id;
+    var container = document.getElementById('tabContents');
+    container.innerHTML = '<div class="loading">Загрузка...</div>';
+
+    // Загружаем все секции последовательно
+    var loaded = {};
+    var total = SECTIONS.length;
+    var loadedCount = 0;
+
+    SECTIONS.forEach(function(section) {
+      loadSectionContent(section, function(err, html) {
+        loadedCount++;
+        if (err) {
+          html = '<div class="desc" style="color:#f85149;">❌ Ошибка загрузки: ' + err.message + '</div>';
+        }
+        loaded[section.id] = html;
+
+        // Когда все загружены — рендерим
+        if (loadedCount === total) {
+          var contentContainer = document.getElementById('tabContents');
+          contentContainer.innerHTML = '';
+          for (var i = 0; i < SECTIONS.length; i++) {
+            var div = document.createElement('div');
+            div.className = 'tab-content' + (SECTIONS[i].id === activeId ? ' active' : '');
+            div.id = 'tab-' + SECTIONS[i].id;
+            div.innerHTML = loaded[SECTIONS[i].id] || '<div class="desc">Пусто</div>';
+            contentContainer.appendChild(div);
+          }
+        }
+      });
+    });
+  }
+
+  function switchTab(id) {
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove('active');
+      if (btns[i].getAttribute('data-tab') === id) {
+        btns[i].classList.add('active');
+      }
+    }
+    var contents = document.querySelectorAll('.tab-content');
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.remove('active');
+      if (contents[j].id === 'tab-' + id) {
+        contents[j].classList.add('active');
+      }
+    }
+  }
+
+  // ========================================================
+  // 6. Копирование команды
+  // ========================================================
+  function copyCmd(btn) {
+    var block = btn.parentElement;
+    var text = block.textContent.replace('Копировать', '').trim();
+    navigator.clipboard.writeText(text);
+    btn.textContent = '✅';
+    setTimeout(function() {
+      btn.textContent = 'Копировать';
+    }, 1200);
+  }
+
+  // ========================================================
+  // 7. Функция входа
+  // ========================================================
+  function doLogin() {
+    var user = document.getElementById('loginUser').value;
+    var pass = document.getElementById('loginPass').value;
     if (user === LOGIN && pass === PASSWORD) {
       document.getElementById('login').classList.add('hidden');
       document.getElementById('main').classList.remove('hidden');
@@ -216,269 +431,6 @@
       document.getElementById('loginError').classList.remove('hidden');
     }
   }
-
-  function renderTabs() {
-    const container = document.getElementById('tabHeaders');
-    container.innerHTML = '';
-    sections.forEach(function(s, i) {
-      const btn = document.createElement('button');
-      btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
-      btn.setAttribute('data-tab', s.id);
-      btn.textContent = s.label;
-      btn.onclick = function() { switchTab(s.id); };
-      container.appendChild(btn);
-    });
-  }
-
-  function renderContent(activeId) {
-    if (!activeId) activeId = sections[0].id;
-    const container = document.getElementById('tabContents');
-    container.innerHTML = '';
-    sections.forEach(function(s) {
-      const div = document.createElement('div');
-      div.className = 'tab-content' + (s.id === activeId ? ' active' : '');
-      div.id = 'tab-' + s.id;
-      div.innerHTML = s.content;
-      container.appendChild(div);
-    });
-  }
-
-  function switchTab(id) {
-    document.querySelectorAll('.tab-btn').forEach(function(b) {
-      b.classList.remove('active');
-    });
-    document.querySelectorAll('.tab-btn').forEach(function(b) {
-      if (b.getAttribute('data-tab') === id) {
-        b.classList.add('active');
-      }
-    });
-    document.querySelectorAll('.tab-content').forEach(function(c) {
-      c.classList.remove('active');
-    });
-    document.getElementById('tab-' + id).classList.add('active');
-  }
-
-  function copyCmd(btn) {
-    const block = btn.parentElement;
-    let text = block.textContent.replace('Копировать', '').trim();
-    navigator.clipboard.writeText(text);
-    btn.textContent = '✅';
-    setTimeout(function() {
-      btn.textContent = 'Копировать';
-    }, 1200);
-  }
-
-  const sections = [
-    {
-      id: 'docker',
-      label: '🐳 Docker',
-      content: `
-        <h2>ШПАРГАЛКА №1: Docker + Docker Compose</h2>
-
-        <h3>Основные команды Docker</h3>
-        <div class="cmd-block">docker --version                    <span class="comment"># версия</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker ps                           <span class="comment"># запущенные контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker ps -a                       <span class="comment"># все контейнеры (включая остановленные)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker images                      <span class="comment"># образы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker logs &lt;container_name&gt;  <span class="comment"># логи</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker exec -it &lt;container&gt; bash  <span class="comment"># зайти внутрь контейнера</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker stop &lt;container&gt;       <span class="comment"># остановить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker rm &lt;container&gt;         <span class="comment"># удалить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker rmi &lt;image&gt;            <span class="comment"># удалить образ</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Docker Compose (самое важное)</h3>
-        <div class="cmd-block">docker compose up -d --build      <span class="comment"># собрать и запустить в фоне</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker compose down               <span class="comment"># остановить и удалить контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker compose ps                 <span class="comment"># статус сервисов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker compose logs web           <span class="comment"># логи сервиса web</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker compose logs db --tail=50  <span class="comment"># последние 50 строк логов db</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">docker compose restart web        <span class="comment"># перезапустить один сервис</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Полезные флаги</h3>
-        <ul style="color:#e6edf3; margin:8px 0 16px 20px;">
-          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--build</code> — пересобрать образы</li>
-          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-d</code> — в фоне (detached)</li>
-          <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--force-recreate</code> — пересоздать контейнеры</li>
-        </ul>
-
-        <h3>Когда использовать docker и когда docker compose</h3>
-        <table>
-          <tr><th>Задача</th><th>Рекомендуемая команда</th><th>Какая команда лучше</th><th>Почему</th></tr>
-          <tr><td>Запустить весь проект</td><td><code>docker compose up -d</code></td><td>docker compose</td><td>Запускает все контейнеры по docker-compose.yml</td></tr>
-          <tr><td>Остановить весь проект</td><td><code>docker compose down</code></td><td>docker compose</td><td>Останавливает всё, что описано в файле</td></tr>
-          <tr><td>Зайти внутрь контейнера</td><td><code>docker exec -it name bash</code></td><td>docker</td><td>exec — базовая команда Docker</td></tr>
-          <tr><td>Посмотреть все запущенные контейнеры</td><td><code>docker ps</code></td><td>docker</td><td>Более полная информация</td></tr>
-          <tr><td>Удалить все остановленные контейнеры</td><td><code>docker rm -f $(docker ps -aq)</code></td><td>docker</td><td>Когда compose не нужен</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> если у тебя есть <code>docker-compose.yml</code> — используй <code>docker compose</code>. Если запускаешь один контейнер — используй <code>docker</code>.</div>
-      `
-    },
-    {
-      id: 'linux',
-      label: '🐧 Linux',
-      content: `
-        <h2>ШПАРГАЛКА №2: Linux (Bash)</h2>
-        <div class="desc">Основные команды для работы в терминале</div>
-
-        <h3>Навигация и файлы</h3>
-        <div class="cmd-block">ls -la                     <span class="comment"># показать все файлы (включая скрытые)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">cd /home/devops            <span class="comment"># перейти в папку</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">pwd                        <span class="comment"># показать текущую папку</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">cat file.txt               <span class="comment"># посмотреть содержимое файла</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">tail -f /var/log/app.log  <span class="comment"># следить за логом в реальном времени</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Поиск и анализ</h3>
-        <div class="cmd-block">grep "error" app.log       <span class="comment"># найти строки с текстом</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">grep -i "error" app.log   <span class="comment"># поиск без учёта регистра</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">grep -v "info" app.log    <span class="comment"># все строки, КРОМЕ info</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">wc -l app.log              <span class="comment"># количество строк в файле</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Управление системой</h3>
-        <div class="cmd-block">chmod +x script.sh && ./script.sh  <span class="comment"># сделать скрипт исполняемым и запустить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">df -h                     <span class="comment"># свободное место на диске</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">sudo apt update && sudo apt upgrade -y  <span class="comment"># обновить систему</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">systemctl status docker   <span class="comment"># статус сервиса</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">journalctl -u docker -f   <span class="comment"># логи сервиса в реальном времени</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Когда что использовать</h3>
-        <table>
-          <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
-          <tr><td>Посмотреть все файлы в папке</td><td><code>ls -la</code></td><td>Показывает права, владельца, размер</td></tr>
-          <tr><td>Найти ошибки в логе</td><td><code>grep ERROR app.log</code></td><td>Быстрый поиск по ключевым словам</td></tr>
-          <tr><td>Узнать, сколько места осталось на диске</td><td><code>df -h</code></td><td>Показывает в GB/MB</td></tr>
-          <tr><td>Перезапустить веб-сервер</td><td><code>sudo systemctl restart nginx</code></td><td>systemctl — стандартный способ управления сервисами</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> Если не знаешь, что делает команда — сначала прочитай документацию: <code>команда --help</code> или <code>man команда</code>.</div>
-      `
-    },
-    {
-      id: 'git',
-      label: '📦 Git',
-      content: `
-        <h2>ШПАРГАЛКА №3: Git</h2>
-        <div class="desc">Основы контроля версий</div>
-
-        <h3>Основные команды</h3>
-        <div class="cmd-block">git init                         <span class="comment"># создать репозиторий</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git add . && git commit -m "msg" <span class="comment"># добавить все и сохранить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git push -u origin main         <span class="comment"># отправить на GitHub</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git pull                        <span class="comment"># забрать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git checkout -b new-feature    <span class="comment"># создать ветку и переключиться</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git branch -a                  <span class="comment"># список веток</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git merge feature              <span class="comment"># слить ветку feature в текущую</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git status                     <span class="comment"># статус изменений</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git log --oneline --graph      <span class="comment"># история коммитов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">git stash                      <span class="comment"># спрятать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Когда что использовать</h3>
-        <table>
-          <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
-          <tr><td>Сделать первый push</td><td><code>git push -u origin main</code></td><td><code>-u</code> связывает локальную и удалённую ветки</td></tr>
-          <tr><td>Создать новую ветку</td><td><code>git checkout -b feature</code></td><td>Отдельная ветка для новой фичи</td></tr>
-          <tr><td>Обновить код с GitHub</td><td><code>git pull</code></td><td>Забирает изменения из удалённого репозитория</td></tr>
-          <tr><td>Посмотреть историю</td><td><code>git log --oneline</code></td><td>Удобно ориентироваться в коммитах</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> <code>git status</code> — лучший друг. Выполняй его перед любыми сложными операциями.</div>
-      `
-    },
-    {
-      id: 'postgres',
-      label: '🐘 PostgreSQL',
-      content: `
-        <h2>ШПАРГАЛКА №4: PostgreSQL</h2>
-        <div class="desc">Запуск, подключение, бэкап и восстановление</div>
-
-        <h3>Запуск PostgreSQL</h3>
-        <div class="cmd-block">docker run -d --name postgres-lab -e POSTGRES_USER=devops -e POSTGRES_PASSWORD=devops123 -e POSTGRES_DB=learning -p 5432:5432 -v postgres_data:/var/lib/postgresql/data postgres:15<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Подключение к базе</h3>
-        <div class="cmd-block">docker exec -it postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Команды внутри psql</h3>
-        <div class="cmd-block">\\l   <span class="comment"># список всех баз данных</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">\\dt  <span class="comment"># список таблиц</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">\\d employees  <span class="comment"># структура таблицы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">SELECT * FROM employees;<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">\\q   <span class="comment"># выход</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Бэкап и восстановление</h3>
-        <div class="cmd-block">docker exec postgres-lab pg_dump -U devops learning > backup.sql<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">cat backup.sql | docker exec -i postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Когда что использовать</h3>
-        <table>
-          <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
-          <tr><td>Запустить PostgreSQL</td><td><code>docker run ... postgres:15</code></td><td>Запускает базу в контейнере с сохранением данных</td></tr>
-          <tr><td>Подключиться к базе</td><td><code>docker exec -it postgres-lab psql -U devops -d learning</code></td><td>Интерактивный доступ к БД</td></tr>
-          <tr><td>Создать бэкап</td><td><code>docker exec postgres-lab pg_dump -U devops learning > backup.sql</code></td><td>Сохраняет все данные в файл</td></tr>
-          <tr><td>Восстановить из бэкапа</td><td><code>cat backup.sql | docker exec -i postgres-lab psql -U devops -d learning</code></td><td>Быстрое восстановление</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> Всегда делай бэкап перед тем, как менять данные в production.</div>
-      `
-    },
-    {
-      id: 'cicd',
-      label: '🔄 CI/CD',
-      content: `
-        <h2>ШПАРГАЛКА №5: CI/CD (GitHub Actions)</h2>
-        <div class="desc">Автоматическая проверка кода при каждом push</div>
-
-        <h3>Базовый workflow для проверки bash-скриптов</h3>
-        <div class="cmd-block" style="white-space:pre-wrap;">name: Check Bash Scripts
-on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - run: bash -n *.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Что означают ключевые слова</h3>
-        <table>
-          <tr><th>Ключевое слово</th><th>Что делает</th></tr>
-          <tr><td><code>name</code></td><td>Название workflow (видно в GitHub Actions)</td></tr>
-          <tr><td><code>on: push</code></td><td>Запускается при каждом push</td></tr>
-          <tr><td><code>jobs</code></td><td>Список задач для выполнения</td></tr>
-          <tr><td><code>runs-on</code></td><td>На какой системе запускать (ubuntu, windows, macos)</td></tr>
-          <tr><td><code>steps</code></td><td>Конкретные шаги: скачать код, запустить проверку</td></tr>
-          <tr><td><code>actions/checkout@v4</code></td><td>Скачивает код из репозитория</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> CI/CD ловит ошибки на раннем этапе. Если workflow упал — исправляй сразу.</div>
-      `
-    },
-    {
-      id: 'ssh',
-      label: '🔒 SSH',
-      content: `
-        <h2>ШПАРГАЛКА №6: SSH</h2>
-        <div class="desc">Подключение к серверам и управление ключами</div>
-
-        <h3>Основные команды</h3>
-        <div class="cmd-block">ssh-keygen -t ed25519 -C "email@example.com"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">cat ~/.ssh/id_ed25519.pub<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">ssh user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">scp file.txt user@192.168.1.1:/remote/<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">ssh-copy-id user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-        <div class="cmd-block">eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
-
-        <h3>Когда что использовать</h3>
-        <table>
-          <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
-          <tr><td>Создать ключ</td><td><code>ssh-keygen -t ed25519</code></td><td>ed25519 — безопаснее, чем RSA</td></tr>
-          <tr><td>Подключиться к серверу</td><td><code>ssh user@ip</code></td><td>Стандартный способ</td></tr>
-          <tr><td>Копировать файл на сервер</td><td><code>scp file user@ip:/path/</code></td><td>Безопасное копирование</td></tr>
-          <tr><td>Добавить ключ на сервер</td><td><code>ssh-copy-id user@ip</code></td><td>Упрощает подключение без пароля</td></tr>
-        </table>
-
-        <div class="note">💡 <strong>Главное правило:</strong> Публичный ключ можно показывать всем. Приватный ключ (id_ed25519) — храни в секрете и никогда не копируй на сервер.</div>
-      `
-    }
-  ];
 </script>
 </body>
 </html>
