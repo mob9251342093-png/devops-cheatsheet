@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps Шпаргалка</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      background: #161b22;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .hidden { display: none !important; }
+    
+    /* Login */
+    #login {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    #login input {
+      display: block;
+      margin: 12px auto;
+      padding: 12px 18px;
+      width: 260px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #e6edf3;
+      font-size: 16px;
+    }
+    #login button {
+      padding: 12px 40px;
+      border: none;
+      border-radius: 8px;
+      background: #238636;
+      color: #fff;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #login button:hover { background: #2ea043; }
+    #login .error {
+      color: #f85149;
+      margin-top: 12px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 12px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #8b949e;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .tab-btn:hover { background: #1f242f; color: #e6edf3; }
+    .tab-btn.active {
+      background: #1f242f;
+      color: #e6edf3;
+      border-bottom: 2px solid #238636;
+    }
+
+    .tab-content {
+      display: none;
+      background: #0d1117;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .tab-content.active { display: block; }
+
+    .tab-content h2 {
+      color: #f0f6fc;
+      margin-bottom: 16px;
+      font-size: 22px;
+    }
+    .tab-content pre {
+      background: #0d1117;
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #e6edf3;
+      position: relative;
+      margin-top: 6px;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: #1f242f;
+      border: none;
+      color: #8b949e;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .copy-btn:hover { background: #30363d; color: #e6edf3; }
+    .desc { color: #8b949e; margin: 8px 0 16px 0; font-size: 15px; }
+    .code-block { position: relative; }
+  </style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <!-- LOGIN -->
+  <div id="login">
+    <h1 style="margin-bottom: 8px;">🔐 DevOps Шпаргалка</h1>
+    <p style="color: #8b949e; margin-bottom: 24px;">Введите логин и пароль</p>
+    <input type="text" id="loginUser" placeholder="Логин" value="devops">
+    <input type="password" id="loginPass" placeholder="Пароль" value="123">
+    <button onclick="login()">Войти</button>
+    <div id="loginError" class="error hidden">Неверный логин или пароль</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main" class="hidden">
+    <div class="tabs" id="tabHeaders"></div>
+    <div id="tabContents"></div>
+  </div>
+</div>
+
+<script>
+  const LOGIN = 'devops';
+  const PASSWORD = '123';
+
+  const sections = [
+    {
+      id: 'docker',
+      label: '🐳 Docker',
+      content: `
+        <h2>Шпаргалка по Docker</h2>
+        <div class="desc">Основные команды для работы с контейнерами</div>
+        <div class="code-block"><pre>docker build -t my-image .<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker run -d --name my-app nginx<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker ps -a<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker stop my-app && docker rm my-app<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker exec -it my-app bash<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker logs my-app<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div style="margin-top:12px;color:#8b949e;">— volumes: <code>-v /host:/container</code></div>
+      `
+    },
+    {
+      id: 'linux',
+      label: '🐧 Linux',
+      content: `
+        <h2>Шпаргалка по Linux</h2>
+        <div class="desc">Основные команды для работы в терминале</div>
+        <div class="code-block"><pre>ls -la<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>cd /home/devops<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>cat file.txt<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>grep "error" app.log<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>chmod +x script.sh && ./script.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>df -h<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+      `
+    },
+    {
+      id: 'git',
+      label: '📦 Git',
+      content: `
+        <h2>Шпаргалка по Git</h2>
+        <div class="desc">Основы контроля версий</div>
+        <div class="code-block"><pre>git init<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>git add . && git commit -m "сообщение"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>git push -u origin main<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>git pull<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>git branch -a<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>git checkout -b new-feature<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+      `
+    },
+    {
+      id: 'postgres',
+      label: '🐘 PostgreSQL',
+      content: `
+        <h2>Шпаргалка по PostgreSQL</h2>
+        <div class="desc">Запуск, подключение, бэкап</div>
+        <div class="code-block"><pre>docker run -d --name postgres-lab -e POSTGRES_USER=devops -e POSTGRES_PASSWORD=devops123 -e POSTGRES_DB=learning -p 5432:5432 -v postgres_data:/var/lib/postgresql/data postgres:15<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker exec -it postgres-lab psql -U devops -d learning<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>\\l<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>\\dt<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>SELECT * FROM employees;<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>docker exec postgres-lab pg_dump -U devops learning > backup.sql<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+      `
+    },
+    {
+      id: 'cicd',
+      label: '🔄 CI/CD',
+      content: `
+        <h2>Шпаргалка по CI/CD (GitHub Actions)</h2>
+        <div class="desc">Автоматическая проверка и сборка</div>
+        <div class="code-block"><pre>name: Check Bash Scripts\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n    - uses: actions/checkout@v4\n    - run: bash -n *.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+      `
+    },
+    {
+      id: 'ssh',
+      label: '🔒 SSH',
+      content: `
+        <h2>Шпаргалка по SSH</h2>
+        <div class="desc">Подключение к серверам и ключи</div>
+        <div class="code-block"><pre>ssh-keygen -t ed25519 -C "email@example.com"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>cat ~/.ssh/id_ed25519.pub<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>ssh user@192.168.1.1<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+        <div class="code-block"><pre>scp file.txt user@192.168.1.1:/remote/<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></pre></div>
+      `
+    }
+  ];
+
+  function login() {
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    if (user === LOGIN && pass === PASSWORD) {
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('main').classList.remove('hidden');
+      renderTabs();
+      renderContent();
+    } else {
+      document.getElementById('loginError').classList.remove('hidden');
+    }
+  }
+
+  function renderTabs() {
+    const container = document.getElementById('tabHeaders');
+    container.innerHTML = sections.map((s, i) =>
+      `<button class="tab-btn ${i === 0 ? 'active' : ''}" data-tab="${s.id}" onclick="switchTab('${s.id}')">${s.label}</button>`
+    ).join('');
+  }
+
+  function renderContent(activeId = sections[0].id) {
+    const container = document.getElementById('tabContents');
+    container.innerHTML = sections.map(s =>
+      `<div class="tab-content ${s.id === activeId ? 'active' : ''}" id="tab-${s.id}">${s.content}</div>`
+    ).join('');
+  }
+
+  function switchTab(id) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${id}"]`).classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${id}`).classList.add('active');
+  }
+
+  function copyCmd(btn) {
+    const pre = btn.parentElement;
+    const text = pre.textContent.replace('Копировать', '').trim();
+    navigator.clipboard.writeText(text);
+    btn.textContent = '✅';
+    setTimeout(() => btn.textContent = 'Копировать', 1200);
+  }
+</script>
+</body>
+</html>
