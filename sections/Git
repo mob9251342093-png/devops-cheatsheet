@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>📦 ШПАРГАЛКА №3: Git</h2>
+        <div class="desc">Основы контроля версий</div>
+
+        <h3>Основные команды</h3>
+        <div class="cmd-block">git init                         <span class="comment"># создать репозиторий</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git add . && git commit -m "msg" <span class="comment"># добавить все и сохранить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git push -u origin main         <span class="comment"># отправить на GitHub</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git pull                        <span class="comment"># забрать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git checkout -b new-feature    <span class="comment"># создать ветку и переключиться</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git branch -a                  <span class="comment"># список веток</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git merge feature              <span class="comment"># слить ветку feature в текущую</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git status                     <span class="comment"># статус изменений</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git log --oneline --graph      <span class="comment"># история коммитов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">git stash                      <span class="comment"># спрятать изменения</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Когда что использовать</h3>
+        <table>
+            <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
+            <tr><td>Сделать первый push</td><td><code>git push -u origin main</code></td><td><code>-u</code> связывает локальную и удалённую ветки</td></tr>
+            <tr><td>Создать новую ветку</td><td><code>git checkout -b feature</code></td><td>Отдельная ветка для новой фичи</td></tr>
+            <tr><td>Обновить код с GitHub</td><td><code>git pull</code></td><td>Забирает изменения из удалённого репозитория</td></tr>
+            <tr><td>Посмотреть историю</td><td><code>git log --oneline</code></td><td>Удобно ориентироваться в коммитах</td></tr>
+        </table>
+
+        <div class="note">💡 <strong>Главное правило:</strong> <code>git status</code> — лучший друг. Выполняй его перед любыми сложными операциями.</div>
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
