@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>🔄 ШПАРГАЛКА №5: CI/CD (GitHub Actions)</h2>
+        <div class="desc">Автоматическая проверка кода при каждом push</div>
+
+        <h3>Базовый workflow для проверки bash-скриптов</h3>
+        <div class="cmd-block" style="white-space:pre-wrap;">name: Check Bash Scripts
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: bash -n *.sh<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Что означают ключевые слова</h3>
+        <table>
+            <tr><th>Ключевое слово</th><th>Что делает</th></tr>
+            <tr><td><code>name</code></td><td>Название workflow (видно в GitHub Actions)</td></tr>
+            <tr><td><code>on: push</code></td><td>Запускается при каждом push</td></tr>
+            <tr><td><code>jobs</code></td><td>Список задач для выполнения</td></tr>
+            <tr><td><code>runs-on</code></td><td>На какой системе запускать (ubuntu, windows, macos)</td></tr>
+            <tr><td><code>steps</code></td><td>Конкретные шаги: скачать код, запустить проверку</td></tr>
+            <tr><td><code>actions/checkout@v4</code></td><td>Скачивает код из репозитория</td></tr>
+        </table>
+
+        <div class="note">💡 <strong>Главное правило:</strong> CI/CD ловит ошибки на раннем этапе. Если workflow упал — исправляй сразу.</div>
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
