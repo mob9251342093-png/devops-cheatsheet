@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>ШПАРГАЛКА №1: Docker + Docker Compose</h2>
+
+        <h3>Основные команды Docker</h3>
+
+        <div class="cmd-block">docker --version                    <span class="comment"># версия</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker ps                           <span class="comment"># запущенные контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker ps -a                       <span class="comment"># все контейнеры (включая остановленные)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker images                      <span class="comment"># образы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker logs &lt;container_name&gt;  <span class="comment"># логи</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker exec -it &lt;container&gt; bash  <span class="comment"># зайти внутрь контейнера</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker stop &lt;container&gt;       <span class="comment"># остановить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker rm &lt;container&gt;         <span class="comment"># удалить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker rmi &lt;image&gt;            <span class="comment"># удалить образ</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Docker Compose (самое важное)</h3>
+
+        <div class="cmd-block">docker compose up -d --build      <span class="comment"># собрать и запустить в фоне</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose down               <span class="comment"># остановить и удалить контейнеры</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose ps                 <span class="comment"># статус сервисов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose logs web           <span class="comment"># логи сервиса web</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose logs db --tail=50  <span class="comment"># последние 50 строк логов db</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">docker compose restart web        <span class="comment"># перезапустить один сервис</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Полезные флаги</h3>
+        <ul style="color:#e6edf3; margin:8px 0 16px 20px;">
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--build</code> — пересобрать образы</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-d</code> — в фоне (detached)</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">--force-recreate</code> — пересоздать контейнеры</li>
+        </ul>
+
+        <h3>Когда использовать docker и когда docker compose</h3>
+        <table>
+            <tr><th>Задача</th><th>Рекомендуемая команда</th><th>Какая команда лучше</th><th>Почему</th></tr>
+            <tr><td>Запустить весь проект</td><td><code>docker compose up -d</code></td><td>docker compose</td><td>Запускает все контейнеры по docker-compose.yml</td></tr>
+            <tr><td>Остановить весь проект</td><td><code>docker compose down</code></td><td>docker compose</td><td>Останавливает всё, что описано в файле</td></tr>
+            <tr><td>Зайти внутрь контейнера</td><td><code>docker exec -it name bash</code></td><td>docker</td><td>exec — базовая команда Docker</td></tr>
+            <tr><td>Посмотреть все запущенные контейнеры</td><td><code>docker ps</code></td><td>docker</td><td>Более полная информация</td></tr>
+            <tr><td>Удалить все остановленные контейнеры</td><td><code>docker rm -f $(docker ps -aq)</code></td><td>docker</td><td>Когда compose не нужен</td></tr>
+        </table>
+
+        <div class="note">💡 <strong>Главное правило:</strong> если у тебя есть <code>docker-compose.yml</code> — используй <code>docker compose</code>. Если запускаешь один контейнер — используй <code>docker</code>.</div>
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
