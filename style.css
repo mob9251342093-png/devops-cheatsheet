@@ -1,0 +1,183 @@
+/* Общие стили */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #161b22;
+    border-radius: 16px;
+    padding: 30px;
+}
+h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+.subtitle {
+    color: #8b949e;
+    margin-bottom: 24px;
+}
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+.section-card {
+    background: #1f242f;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+    text-decoration: none;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+}
+.section-card:hover {
+    background: #30363d;
+    transform: translateY(-4px);
+    border-color: #238636;
+}
+.section-card .icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 8px;
+}
+.section-card .label {
+    font-size: 18px;
+    font-weight: 600;
+}
+.footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #30363d;
+    color: #8b949e;
+    font-size: 14px;
+}
+.footer code {
+    background: #0d1117;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* Стили для страницы шпаргалки */
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #58a6ff;
+    text-decoration: none;
+}
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Две колонки для блоков с командами */
+.cmd-block {
+    width: 48%;
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 2%;
+    box-sizing: border-box;
+    background: #0d1117;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    padding: 12px 50px 12px 16px;
+    position: relative;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #e6edf3;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+.cmd-block:nth-child(2n) {
+    margin-right: 0;
+}
+.cmd-block .comment {
+    color: #8b949e;
+    font-size: 13px;
+}
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #1f242f;
+    border: none;
+    color: #8b949e;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.copy-btn:hover {
+    background: #30363d;
+    color: #e6edf3;
+}
+
+h2 {
+    color: #f0f6fc;
+    margin: 24px 0 16px 0;
+    font-size: 22px;
+}
+h3 {
+    color: #f0f6fc;
+    margin: 24px 0 12px 0;
+    font-size: 18px;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 6px;
+}
+.desc {
+    color: #8b949e;
+    margin: 8px 0 12px 0;
+    font-size: 15px;
+}
+.note {
+    background: #1f242f;
+    border-left: 3px solid #238636;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-size: 14px;
+}
+.note code {
+    background: #0d1117;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 14px;
+}
+th, td {
+    border: 1px solid #30363d;
+    padding: 8px 12px;
+    text-align: left;
+}
+th {
+    background: #1f242f;
+    color: #f0f6fc;
+}
+td {
+    color: #e6edf3;
+}
+td code {
+    background: #0d1117;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.loading {
+    text-align: center;
+    color: #8b949e;
+    padding: 40px 0;
+}
