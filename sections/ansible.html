@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ansible — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>⚙️ ШПАРГАЛКА: Ansible</h2>
+
+        <div class="note">
+            <strong>📌 Для чего нужен Ansible?</strong><br>
+            Ansible — это инструмент для <strong>автоматизации настройки серверов</strong>.<br>
+            Вместо того чтобы вручную заходить на каждый сервер по SSH и выполнять команды, ты пишешь <strong>плейбук</strong> (инструкцию), и Ansible сам всё делает.
+        </div>
+
+        <h3>Основные понятия</h3>
+        <table>
+            <tr><th>Термин</th><th>Что это</th></tr>
+            <tr><td><strong>Inventory</strong></td><td>Файл со списком серверов (где выполнять команды)</td></tr>
+            <tr><td><strong>Playbook</strong></td><td>Инструкция для Ansible (что делать на серверах)</td></tr>
+            <tr><td><strong>Task</strong></td><td>Одно действие (установить пакет, скопировать файл)</td></tr>
+            <tr><td><strong>Module</strong></td><td>Готовая функция (apt, service, copy, cron)</td></tr>
+            <tr><td><strong>Handler</strong></td><td>Задача, которая выполняется только при изменении (например, перезапустить nginx)</td></tr>
+        </table>
+
+        <h3>Команды Ansible</h3>
+        <div class="cmd-block">ansible --version                                            <span class="comment"># версия</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ansible all -i inventory.ini -m ping                        <span class="comment"># проверить доступность серверов</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ansible all -i inventory.ini -m shell -a "uptime"          <span class="comment"># выполнить команду на всех серверах</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ansible-playbook -i inventory.ini playbook.yml             <span class="comment"># запустить плейбук</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ansible-playbook -i inventory.ini playbook.yml --check     <span class="comment"># проверить (dry-run) без изменений</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">ansible-playbook -i inventory.ini playbook.yml -v          <span class="comment"># подробный вывод (verbose)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Пример инвентарного файла (<code>inventory.ini</code>)</h3>
+        <div class="cmd-block" style="white-space:pre-wrap;">[webservers]
+localhost ansible_connection=local
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Пример плейбука (<code>install-nginx.yml</code>)</h3>
+        <div class="cmd-block" style="white-space:pre-wrap;">---
+- name: Установка и запуск nginx
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Установить nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Запустить nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Пример плейбука для бэкапа (<code>deploy-backup.yml</code>)</h3>
+        <div class="cmd-block" style="white-space:pre-wrap;">---
+- name: Настройка резервного копирования
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Создать папку для скриптов
+      file:
+        path: /opt/backup-scripts
+        state: directory
+        mode: 0755
+
+    - name: Скопировать скрипт
+      copy:
+        src: /home/devops/devops_notes/backup.sh
+        dest: /opt/backup-scripts/backup.sh
+        mode: 0755
+
+    - name: Добавить задание в cron
+      cron:
+        name: "Ежедневный бэкап"
+        minute: "0"
+        hour: "3"
+        job: "/opt/backup-scripts/backup.sh >> /var/log/backup.log 2>&1"<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>❌ Реальные ошибки и их решения</h3>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>1. Ошибка:</strong> <code>Unable to parse inventory.ini as an inventory source</code><br>
+            <strong>Причина:</strong> Неправильный синтаксис в инвентарном файле или неверное имя файла.<br>
+            <strong>Решение:</strong> Убедись, что файл существует и имеет правильный синтаксис. Используй <code>cat inventory.ini</code> для проверки.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>2. Ошибка:</strong> <code>sudo: требуется указать пароль</code><br>
+            <strong>Причина:</strong> Ansible не может выполнять команды с <code>sudo</code> без пароля.<br>
+            <strong>Решение:</strong> Добавь в инвентарный файл пароль или разреши пользователю выполнять <code>sudo</code> без пароля через <code>sudo visudo</code>.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>3. Ошибка:</strong> <code>cp: не удалось выполнить stat для '/app/*.sh': Нет такого файла или каталога</code><br>
+            <strong>Причина:</strong> Путь внутри скрипта не соответствует реальной структуре сервера.<br>
+            <strong>Решение:</strong> Проверь, откуда скрипт копирует файлы. Если скрипт писался для Docker, путь должен быть изменён на реальный.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>4. Ошибка:</strong> <code>crontab -l | grep backup</code> не показывает задание<br>
+            <strong>Причина:</strong> Ты проверяешь cron пользователя <code>devops</code>, а задание добавлено в cron <code>root</code>.<br>
+            <strong>Решение:</strong> Используй <code>sudo crontab -l | grep backup</code>.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>5. Ошибка:</strong> <code>Permission denied</code> при записи в папку<br>
+            <strong>Причина:</strong> Недостаточно прав для создания файлов или записи в системные папки.<br>
+            <strong>Решение:</strong> Используй <code>sudo</code> для команд, требующих прав, или измени владельца папки (<code>chown</code>).
+        </div>
+
+        <h3>Главное правило Ansible</h3>
+        <div class="note">
+            💡 <strong>Если ты делаешь что-то на сервере вручную чаще одного раза — напиши плейбук.</strong><br>
+            Это сэкономит часы работы и избавит от ошибок.
+        </div>
+
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
