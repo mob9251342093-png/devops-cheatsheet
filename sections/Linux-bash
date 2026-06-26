@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>🐧 ШПАРГАЛКА №2: Linux (Bash)</h2>
+
+        <h3>Навигация и файлы</h3>
+        <div class="cmd-block">ls -la                     <span class="comment"># показать все файлы (включая скрытые)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cd /home/devops            <span class="comment"># перейти в папку</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">pwd                        <span class="comment"># показать текущую папку</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">cat file.txt               <span class="comment"># посмотреть содержимое файла</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">tail -f /var/log/app.log  <span class="comment"># следить за логом в реальном времени</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Поиск и анализ</h3>
+        <div class="cmd-block">grep "error" app.log       <span class="comment"># найти строки с текстом</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">grep -i "error" app.log   <span class="comment"># поиск без учёта регистра</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">grep -v "info" app.log    <span class="comment"># все строки, КРОМЕ info</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">wc -l app.log              <span class="comment"># количество строк в файле</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Управление системой</h3>
+        <div class="cmd-block">chmod +x script.sh && ./script.sh  <span class="comment"># сделать скрипт исполняемым и запустить</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">df -h                     <span class="comment"># свободное место на диске</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">sudo apt update && sudo apt upgrade -y  <span class="comment"># обновить систему</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">systemctl status docker   <span class="comment"># статус сервиса</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">journalctl -u docker -f   <span class="comment"># логи сервиса в реальном времени</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Когда что использовать</h3>
+        <table>
+            <tr><th>Задача</th><th>Команда</th><th>Почему</th></tr>
+            <tr><td>Посмотреть все файлы в папке</td><td><code>ls -la</code></td><td>Показывает права, владельца, размер</td></tr>
+            <tr><td>Найти ошибки в логе</td><td><code>grep ERROR app.log</code></td><td>Быстрый поиск по ключевым словам</td></tr>
+            <tr><td>Узнать, сколько места осталось на диске</td><td><code>df -h</code></td><td>Показывает в GB/MB</td></tr>
+            <tr><td>Перезапустить веб-сервер</td><td><code>sudo systemctl restart nginx</code></td><td>systemctl — стандартный способ управления сервисами</td></tr>
+        </table>
+
+        <div class="note">💡 <strong>Главное правило:</strong> Если не знаешь, что делает команда — сначала прочитай документацию: <code>команда --help</code> или <code>man команда</code>.</div>
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
