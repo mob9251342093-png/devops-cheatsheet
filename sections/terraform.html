@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terraform — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>🏗️ ШПАРГАЛКА: Terraform</h2>
+
+        <div class="note">
+            <strong>📌 Для чего нужен Terraform?</strong><br>
+            Terraform — это инструмент для <strong>создания инфраструктуры через код</strong> (IaC — Infrastructure as Code).<br>
+            Вместо того чтобы нажимать кнопки в облачной консоли, ты описываешь сервера, сети, диски в файлах, и Terraform сам создаёт их в облаке (AWS, Yandex Cloud, GCP и других).
+        </div>
+
+        <h3>Основные понятия</h3>
+        <table>
+            <tr><th>Термин</th><th>Что это</th></tr>
+            <tr><td><strong>Provider</strong></td><td>Провайдер облака (AWS, Yandex Cloud, GCP)</td></tr>
+            <tr><td><strong>Resource</strong></td><td>Ресурс, который создаётся (сервер, диск, сеть)</td></tr>
+            <tr><td><strong>State</strong></td><td>Файл <code>terraform.tfstate</code> — здесь Terraform хранит информацию о созданных ресурсах</td></tr>
+            <tr><td><strong>Plan</strong></td><td>Показывает, что будет создано или изменено (без реальных действий)</td></tr>
+            <tr><td><strong>Apply</strong></td><td>Создаёт или изменяет ресурсы в облаке</td></tr>
+            <tr><td><strong>Destroy</strong></td><td>Удаляет все ресурсы, созданные Terraform</td></tr>
+            <tr><td><strong>Variable</strong></td><td>Переменная, чтобы не хардкодить значения (ключи, регион)</td></tr>
+            <tr><td><strong>Output</strong></td><td>Выводит полезную информацию после apply (например, IP адрес)</td></tr>
+            <tr><td><strong>Security Group</strong></td><td>Правила доступа к серверу (файервол в AWS)</td></tr>
+            <tr><td><strong>Key Pair</strong></td><td>SSH-ключ для подключения к серверу</td></tr>
+        </table>
+
+        <h3>Основные команды Terraform</h3>
+        <div class="cmd-block">terraform init                                        <span class="comment"># инициализация (скачать провайдера)</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform plan                                       <span class="comment"># показать план изменений</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform apply                                      <span class="comment"># создать/изменить инфраструктуру</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform destroy                                    <span class="comment"># удалить всё, что создал Terraform</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform state list                                 <span class="comment"># список ресурсов в состоянии</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform state show &lt;resource_name&gt;              <span class="comment"># подробная информация о ресурсе</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform state rm &lt;resource_name&gt;                <span class="comment"># удалить ресурс из состояния</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform output                                      <span class="comment"># показать выходные переменные</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">terraform destroy -target &lt;resource_name&gt;           <span class="comment"># удалить только конкретный ресурс</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Пример конфигурации (<code>main.tf</code>) для AWS</h3>
+        <div class="cmd-block" style="white-space:pre-wrap;">terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_key_pair" "devops_key" {
+  key_name   = "devops-key"
+  public_key = file("~/.ssh/id_ed25519.pub")
+}
+
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "devops_server" {
+  ami                    = "ami-0c02fb55956c7d316"
+  instance_type          = "t3.micro"
+  key_name               = aws_key_pair.devops_key.key_name
+  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+
+  tags = {
+    Name = "Terraform-VM"
+  }
+}
+
+output "public_ip" {
+  value = aws_instance.devops_server.public_ip
+}<button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>❌ Реальные ошибки и их решения</h3>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>1. Ошибка:</strong> <code>Error: Invalid provider registry host</code><br>
+            <strong>Причина:</strong> Нет доступа к официальному реестру Terraform (блокировка, DNS).<br>
+            <strong>Решение:</strong> Использовать зеркало, добавив в <code>~/.terraformrc</code>:<br>
+            <code>provider_installation { network_mirror { url = "https://terraform-mirror.yandexcloud.net/" } }</code>
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>2. Ошибка:</strong> <code>Error: No valid credential sources found</code><br>
+            <strong>Причина:</strong> Terraform не видит ключи AWS.<br>
+            <strong>Решение:</strong> Передать ключи через переменные окружения:<br>
+            <code>export AWS_ACCESS_KEY_ID="AKIA..."</code><br>
+            <code>export AWS_SECRET_ACCESS_KEY="..."</code>
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>3. Ошибка:</strong> <code>Error: InvalidParameterCombination: The specified instance type is not eligible for Free Tier</code><br>
+            <strong>Причина:</strong> Выбранный тип инстанса не входит в бесплатный тариф.<br>
+            <strong>Решение:</strong> Заменить <code>instance_type</code> на <code>t3.micro</code> или <code>t2.nano</code>.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>4. Ошибка:</strong> <code>Permission denied (publickey)</code><br>
+            <strong>Причина:</strong> Неправильный SSH-ключ или пользователь.<br>
+            <strong>Решение:</strong> Проверь публичный ключ в AWS Console и локальный ключ. Попробуй пользователя <code>ec2-user</code> (для Amazon Linux) или <code>ubuntu</code> (для Ubuntu).
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>5. Ошибка:</strong> <code>Error: creating EC2 Instance: operation error EC2: RunInstances ... VPCIdNotSpecified</code><br>
+            <strong>Причина:</strong> Не указана Security Group или VPC.<br>
+            <strong>Решение:</strong> Добавь <code>vpc_security_group_ids = [aws_security_group.allow_ssh.id]</code> в конфиг инстанса.
+        </div>
+
+        <div class="note" style="border-left-color: #f85149;">
+            <strong>6. Ошибка:</strong> <code>Error: No configuration files</code><br>
+            <strong>Причина:</strong> Ты выполнил <code>terraform plan</code> не в папке с <code>main.tf</code>.<br>
+            <strong>Решение:</strong> Перейди в папку с конфигом (<code>cd ~/aws-terraform</code>).
+        </div>
+
+        <h3>Имена пользователей в AWS</h3>
+        <table>
+            <tr><th>ОС</th><th>Имя пользователя</th></tr>
+            <tr><td>Amazon Linux</td><td><code>ec2-user</code></td></tr>
+            <tr><td>Ubuntu</td><td><code>ubuntu</code></td></tr>
+            <tr><td>Debian</td><td><code>admin</code></td></tr>
+            <tr><td>RHEL / CentOS</td><td><code>centos</code> или <code>ec2-user</code></td></tr>
+        </table>
+
+        <h3>Полезные флаги</h3>
+        <ul style="color:#e6edf3; margin:8px 0 16px 20px;">
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-target=resource_name</code> — применить изменения только к одному ресурсу</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-auto-approve</code> — не спрашивать подтверждения (осторожно!)</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">-var="key=value"</code> — передать переменную</li>
+        </ul>
+
+        <h3>Главные правила Terraform</h3>
+        <div class="note">
+            💡 <strong>1. Всегда запускай <code>terraform plan</code> перед <code>terraform apply</code>.</strong><br>
+            Это позволит увидеть, что изменится, и избежать неожиданных сюрпризов.
+        </div>
+        <div class="note">
+            💡 <strong>2. Храни <code>terraform.tfstate</code> в безопасности.</strong><br>
+            Это файл состояния — в нём хранится информация о созданных ресурсах. Если потеряешь его, Terraform не сможет управлять инфраструктурой.
+        </div>
+        <div class="note">
+            💡 <strong>3. Не храни секреты (ключи) в <code>main.tf</code>.</strong><br>
+            Используй переменные окружения или <code>terraform.tfvars</code>.
+        </div>
+
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
