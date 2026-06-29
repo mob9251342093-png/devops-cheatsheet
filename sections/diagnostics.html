@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диагностика — Шпаргалка</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">⬅ Назад к списку</a>
+
+        <h2>🐞 Диагностика системы: strace и lsof</h2>
+
+        <div class="note">
+            <strong>📌 Зачем это нужно?</strong><br>
+            <strong>strace</strong> — показывает, какие системные вызовы делает программа.<br>
+            Когда приложение падает или не запускается, <code>strace</code> помогает понять, что пошло не так (например, не хватает прав, нет файла, занят порт).<br><br>
+            <strong>lsof</strong> — показывает, какие файлы и порты открыты процессами.<br>
+            Помогает быстро найти, кто занял порт, или какие файлы использует процесс.
+        </div>
+
+        <h3>Команды strace</h3>
+
+        <div class="cmd-block">strace -p &lt;PID&gt;              <span class="comment"># Подключиться к процессу</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">strace -e trace=network curl  <span class="comment"># Только сетевые вызовы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">strace -e trace=file ls      <span class="comment"># Только операции с файлами</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">strace -e trace=open,read,write command  <span class="comment"># Конкретные вызовы</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">strace -o output.log command <span class="comment"># Сохранить вывод в файл</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Команды lsof</h3>
+
+        <div class="cmd-block">lsof -p &lt;PID&gt;                <span class="comment"># Файлы процесса</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">sudo lsof -i -P -n           <span class="comment"># Все открытые порты</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">sudo lsof -i :80             <span class="comment"># Кто слушает порт 80</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+        <div class="cmd-block">sudo lsof -u devops          <span class="comment"># Файлы пользователя devops</span><button class="copy-btn" onclick="copyCmd(this)">Копировать</button></div>
+
+        <h3>Разбор вывода lsof</h3>
+        <table>
+            <tr><th>Поле</th><th>Что значит</th></tr>
+            <tr><td><code>COMMAND</code></td><td>Имя процесса</td></tr>
+            <tr><td><code>PID</code></td><td>ID процесса</td></tr>
+            <tr><td><code>USER</code></td><td>Пользователь, запустивший процесс</td></tr>
+            <tr><td><code>FD</code></td><td>Тип дескриптора (cwd, txt, mem, 0u, 1u, 2u)</td></tr>
+            <tr><td><code>NAME</code></td><td>Файл или ресурс</td></tr>
+        </table>
+
+        <h3>Типы дескрипторов (FD)</h3>
+        <ul style="color:#e6edf3; margin:8px 0 16px 20px;">
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">cwd</code> — текущая рабочая директория</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">rtd</code> — корневая директория (/)</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">txt</code> — исполняемый файл</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">mem</code> — библиотека в памяти</li>
+            <li><code style="background:#1f242f;padding:2px 8px;border-radius:4px;">0u, 1u, 2u</code> — stdin, stdout, stderr</li>
+        </ul>
+
+        <h3>Главное правило</h3>
+        <div class="note">
+            💡 <strong>Если приложение не запускается — сначала проверь порты через <code>lsof -i</code>.</strong><br>
+            Если порт свободен — используй <code>strace -o log.txt command</code> и читай вывод.
+        </div>
+
+    </div>
+
+    <script>
+        function copyCmd(btn) {
+            var block = btn.parentElement;
+            var text = block.textContent.replace('Копировать', '').trim();
+            navigator.clipboard.writeText(text);
+            btn.textContent = '✅';
+            setTimeout(function() {
+                btn.textContent = 'Копировать';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
